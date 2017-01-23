@@ -12,15 +12,22 @@ import AFNetworking
 class PhotosViewController: UIViewController, UITableViewDataSource, UITableViewDelegate{
     
     var posts: [NSDictionary] = []
-    var image: UIImageView!
+    var image: UIImage!
     @IBOutlet var tableview: UITableView!
     override func viewDidLoad() {
         super.viewDidLoad()
         tableview.delegate = self
         tableview.dataSource = self
         //tableview.rowHeight = 240
+     let  refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(PhotosViewController.loadMore), for: UIControlEvents.valueChanged)
+        tableview.insertSubview(refreshControl, at: 0)
+        
+        loadMore()
 
-        // Do any additional setup after loading the view.
+    }
+    
+    func loadMore() {
         let url = URL(string:"https://api.tumblr.com/v2/blog/humansofnewyork.tumblr.com/posts/photo?api_key=Q6vHoaVm5L1u2ZAW1fqv3Jw48gFzYVg9P0vH0VHl3GVy6quoGV")
         let request = URLRequest(url: url!)
         let session = URLSession(
@@ -32,6 +39,9 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         let task : URLSessionDataTask = session.dataTask(
             with: request as URLRequest,
             completionHandler: { (data, response, error) in
+                if let error = error {
+                    print(error.localizedDescription)
+                }
                 if let data = data {
                     if let responseDictionary = try! JSONSerialization.jsonObject(
                         with: data, options:[]) as? NSDictionary {
@@ -49,6 +59,7 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
                 }
         });
         task.resume()
+        //UIRefreshControl?.endRefreshing()
     }
 
     override func didReceiveMemoryWarning() {
@@ -65,7 +76,6 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         let post = posts[indexPath.row]
         let timestamp = post["date"] as? String
         
-        print(timestamp)
         cell.celllabel.text = timestamp
         if let photos = post.value(forKeyPath: "photos") as? [NSDictionary]{
             // photos is NOT nil, go ahead and access element 0 and run the code in the curly braces
@@ -87,26 +97,12 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let dvc = segue.destination as! PhotoDetailsViewController
-        
-        var indexPath = tableview.indexPath(for: sender as! TableViewCell)
-        let post = posts[(indexPath?.row)!]
-        print (post)
-        if let photos = post.value(forKeyPath: "photos") as? [NSDictionary]{
-            // photos is NOT nil, go ahead and access element 0 and run the code in the curly braces
-            let imageUrlString = photos[0].value(forKeyPath: "original_size.url") as? String
-            if let imageUrl = URL(string: imageUrlString!) {
-                // URL(string: imageUrlString!) is NOT nil, go ahead and unwrap it and assign it to imageUrl and run the code in the curly braces
-                
-                // cell.cellImage.setImageWith(imageUrl)
-                self.image.setImageWith(imageUrl)
-                print(imageUrl)
-                dvc.detailImage = image
-            } else {
-                // URL(string: imageUrlString!) is nil. Good thing we didn't try to unwrap it!
-            }
-        } else {
-            // photos is nil. Good thing we didn't try to unwrap it!
+        let cell = sender as! TableViewCell
+        guard let image = cell.cellImage.image else{
+            return
         }
+        dvc.image = image
+        
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -125,5 +121,7 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         } else {
             // photos is nil. Good thing we didn't try to unwrap it!
         }*/
+        tableview.deselectRow(at: indexPath, animated:true)
     }
 }
+

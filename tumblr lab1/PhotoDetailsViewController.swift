@@ -10,7 +10,7 @@ import UIKit
 
 class PhotoDetailsViewController: UIViewController {
     
-
+    var image: UIImage!
 
     @IBOutlet var detailImage: UIImageView!
 
@@ -18,6 +18,11 @@ class PhotoDetailsViewController: UIViewController {
         super.viewDidLoad()
        // imageView.image = image
         // Do any additional setup after loading the view.
+        guard let image = image else{
+        print ("image nil")
+            return
+        }
+        detailImage.image = image
     }
 
     override func didReceiveMemoryWarning() {
