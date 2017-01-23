@@ -12,7 +12,7 @@ import AFNetworking
 class PhotosViewController: UIViewController, UITableViewDataSource, UITableViewDelegate{
     
     var posts: [NSDictionary] = []
-
+    var image: UIImageView!
     @IBOutlet var tableview: UITableView!
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -64,6 +64,7 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell") as! TableViewCell
         let post = posts[indexPath.row]
         let timestamp = post["date"] as? String
+        
         print(timestamp)
         cell.celllabel.text = timestamp
         if let photos = post.value(forKeyPath: "photos") as? [NSDictionary]{
@@ -84,5 +85,45 @@ class PhotosViewController: UIViewController, UITableViewDataSource, UITableView
         
     }
 
-
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let dvc = segue.destination as! PhotoDetailsViewController
+        
+        var indexPath = tableview.indexPath(for: sender as! TableViewCell)
+        let post = posts[(indexPath?.row)!]
+        print (post)
+        if let photos = post.value(forKeyPath: "photos") as? [NSDictionary]{
+            // photos is NOT nil, go ahead and access element 0 and run the code in the curly braces
+            let imageUrlString = photos[0].value(forKeyPath: "original_size.url") as? String
+            if let imageUrl = URL(string: imageUrlString!) {
+                // URL(string: imageUrlString!) is NOT nil, go ahead and unwrap it and assign it to imageUrl and run the code in the curly braces
+                
+                // cell.cellImage.setImageWith(imageUrl)
+                self.image.setImageWith(imageUrl)
+                print(imageUrl)
+                dvc.detailImage = image
+            } else {
+                // URL(string: imageUrlString!) is nil. Good thing we didn't try to unwrap it!
+            }
+        } else {
+            // photos is nil. Good thing we didn't try to unwrap it!
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+       /* let post = posts[indexPath.row]
+        if let photos = post.value(forKeyPath: "photos") as? [NSDictionary]{
+            // photos is NOT nil, go ahead and access element 0 and run the code in the curly braces
+            let imageUrlString = photos[0].value(forKeyPath: "original_size.url") as? String
+            if let imageUrl = URL(string: imageUrlString!) {
+                // URL(string: imageUrlString!) is NOT nil, go ahead and unwrap it and assign it to imageUrl and run the code in the curly braces
+                
+               // cell.cellImage.setImageWith(imageUrl)
+                //self.image = cell.cellImage.image
+            } else {
+                // URL(string: imageUrlString!) is nil. Good thing we didn't try to unwrap it!
+            }
+        } else {
+            // photos is nil. Good thing we didn't try to unwrap it!
+        }*/
+    }
 }
